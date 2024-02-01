@@ -2,25 +2,24 @@ import { IChannelStatistics } from "../types/types"
 
 interface IChannel {
     channel: IChannelStatistics;
-    name: string;
     showVideos: boolean;
     setShowVideos(bool: boolean): void;
 }
 
-export default function Channel({name, channel, showVideos, setShowVideos} : IChannel) {
+export default function Channel({channel, showVideos, setShowVideos} : IChannel) {
   return (
-    <div className="grid grid-cols-2 text-left mb-4">
+    <div className="grid grid-cols-2 mb-4 text-left">
           <div>
-            <p className='text-[18px]'>Channel: <span className='font-bold'>{name}</span></p>
+            <p className='text-[18px]'>Channel: <span className='font-bold'>{channel.name}</span></p>
 
             <img
-              className='w48 h-48 my-12' 
+              className='h-48 my-12 w48' 
               src={channel.image} 
               alt="channel image" 
             />
           </div>
 
-          <div>
+          <div className="">
             <h2 className="text-lg font-semibold">Channel Statistics:</h2>
             <p>
               Subscribers: {channel.subscriberCount}

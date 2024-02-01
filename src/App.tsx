@@ -14,12 +14,13 @@ function App() {
   const [popularVideos, setPopularVideos] = useState<IVideo[]>([]);
   const [showVideos, setShowVideos] = useState<boolean>(false);
   const [maxVideos, setMaxVideos] = useState(5);
+  const [orderVideos, setOrderVideos] = useState<string | undefined>('videoCount');
 
   useEffect(() => {
     if (channelStatistics) {
       fetchPopularVideos();
     }
-  }, [channelStatistics, setMaxVideos, maxVideos]);
+  }, [channelStatistics, setMaxVideos, maxVideos, orderVideos, setOrderVideos]);
 
 
   const fetchPopularVideos = async () => {
@@ -27,7 +28,7 @@ function App() {
       if (channelStatistics) {
         if(!maxVideos) setMaxVideos(5);
         const response = await fetch(
-          `https://www.googleapis.com/youtube/v3/search?part=snippet&order=viewCount&type=video&maxResults=${maxVideos}&key=${apiKey}&channelId=${channelStatistics.id}`
+          `https://www.googleapis.com/youtube/v3/search?part=snippet&order=${orderVideos}&type=video&maxResults=${maxVideos}&key=${apiKey}&channelId=${channelStatistics.id}`
         );
   
         if (!response.ok) {
@@ -62,15 +63,17 @@ function App() {
         `https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CcontentOwnerDetails&forUsername=${channelName}&key=${apiKey}`
       );
       if (!response.ok) {
+        setChannelStatistics(null)
         throw new Error('Error obtaining channel statistics');
       }
       
       const data = await response.json();
       if (data.items && data.items.length > 0) {
         const channelStats = data.items[0].statistics;
-        console.log(data.items[0].id, data.items[0].snippet.country);
+        
         setChannelStatistics({
           id: data.items[0].id,
+          name: channelName,
           image: data.items[0].snippet.thumbnails.default.url,
           subscriberCount: channelStats.subscriberCount,
           videoCount: channelStats.videoCount,
@@ -86,8 +89,8 @@ function App() {
   };
 
   return (
-    <div className="App text-center m-0">
-      <h1 className="text-3xl font-bold mb-4">YouTube Channel Statistics</h1>
+    <div className="m-0 text-center App">
+      <h1 className="mb-4 text-3xl font-bold">YouTube Channel Statistics</h1>
       <div className="mb-4">
         <label htmlFor="channelName" className="mr-2">
           Enter Channel Name:
@@ -98,11 +101,11 @@ function App() {
           placeholder="Enter channel name"
           value={channelName}
           onChange={(e) => setChannelName(e.target.value)}
-          className="border p-2"
+          className="p-2 border"
         />
         <button
           onClick={handleSearch}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="px-4 py-2 text-white bg-blue-500 rounded"
         >
           Get Statistics
         </button>
@@ -112,7 +115,6 @@ function App() {
         <h1 className='text-3xl text-red-600'>This channel does not allow the use of your information or no exists</h1>
       ) : channelStatistics ? (
         <Channel
-          name={channelName}
           channel={channelStatistics}
           showVideos={showVideos}
           setShowVideos={setShowVideos}
@@ -120,10 +122,10 @@ function App() {
       ) : null }
 
       {(popularVideos.length > 0 && showVideos) && (
-        <div className=''>
-          <h2 className="text-lg font-semibold mb-2">Popular Videos:</h2>
-          <div className='grid grid-cols-2 gap-2'>
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        <>
+          <h2 className="mb-2 text-lg font-semibold">Popular Videos:</h2>
+          <div className='grid grid-cols-2 gap-6'>
+            <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3">
               {popularVideos.map((video: IVideo, index: number) => (
                 <Video
                   key={index}
@@ -131,18 +133,34 @@ function App() {
                 />
               ))}
             </div>
-
-            <select 
-              className='h-8 w-52 border-2 border-slate-400 rounded-lg mx-auto' onChange={(e) => setMaxVideos(Number(e.target.value))}>
-              <option value="">Select an option: </option>
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-              <option value="25">25</option>
-            </select>
+            <div className='flex flex-col space-y-4 '>
+             <div className='p-2 border rounded-lg border-slate-600'>
+              <h2 className='mb-2 font-semibold text-md'>Choose the number of videos to display</h2>
+                <select 
+                  className='h-8 mx-auto text-center border-2 rounded-lg w-52 border-slate-400' onChange={(e) => setMaxVideos(Number(e.target.value))}>
+                  <option value="">Select an option: </option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="15">15</option>
+                  <option value="20">20</option>
+                  <option value="25">25</option>
+                </select>
+              </div>
+              <div className='p-2 border rounded-lg border-slate-600'>
+              <h2 className='mb-2 font-semibold text-md'>Choose of way to show data</h2>
+                <select 
+                  className='h-8 mx-auto text-center border-2 rounded-lg w-52 border-slate-400' onChange={(e) => setOrderVideos((e.target.value))}>
+                  <option value="">Select an option: </option>
+                  <option value="date">Date</option>
+                  <option value="relevance">Relevance</option>
+                  <option value="rating">Rating</option>
+                  <option value="title">Title</option>
+                  <option value="viewCount">Count of views</option>
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 export interface IChannelStatistics  {
     id: string;
+    name: string;
     image: string
     subscriberCount: string;
     videoCount: string;
